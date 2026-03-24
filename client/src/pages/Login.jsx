@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import axios from 'axios';
-import './Login.css';
 import {
   signInWithPopup,
   setPersistence,
@@ -10,6 +9,7 @@ import {
 import { auth, googleProvider } from '../firebaseConfig';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import './Login.css';
 
 
 function Login() {
