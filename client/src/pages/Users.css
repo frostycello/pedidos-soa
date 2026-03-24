@@ -1,0 +1,228 @@
+.users-container {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    url("https://images.unsplash.com/photo-1504674900247-0877df9cc836");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.users-card {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.users-header h2 {
+  margin: 0;
+  color: #222;
+}
+
+.users-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.users-form input,
+.users-form select {
+  padding: 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.btn-guardar-usuario {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-guardar-usuario:hover {
+  background: #218838;
+}
+
+.btn-volver {
+  text-decoration: none;
+  background: #6c757d;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.tabla-usuarios {
+  overflow-x: auto;
+}
+
+.tabla-usuarios table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td {
+  padding: 14px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.tabla-usuarios th {
+  background: #f4f4f4;
+}
+
+.tabla-usuarios select {
+  padding: 8px;
+  border-radius: 8px;
+}
+/* ESTADOS DE PEDIDO */
+
+.estado-pendiente {
+  background-color: #ff4646;
+}
+
+.estado-en\ preparacion {
+  background-color: #faed00;
+}
+
+.estado-entregado {
+  background-color: #50f880;
+}
+
+/* Hover más elegante */
+.estado-pendiente:hover {
+  background-color: #fae1e1;
+}
+
+.estado-en\ preparacion:hover {
+  background-color: #fae1e1;
+}
+
+.estado-entregado:hover {
+  background-color: #fae1e1;
+}
+/* BADGES DE ESTADO */
+
+.badge-pendiente {
+  background: #dc3545;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.badge-en\ preparacion {
+  background: #ffc107;
+  color: #222;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.badge-entregado {
+  background: #28a745;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+.mesas-section {
+  margin-bottom: 30px;
+}
+
+.mesas-section h3 {
+  margin-bottom: 16px;
+  color: #222;
+}
+
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.mesa-card {
+  border-radius: 16px;
+  padding: 16px;
+  color: #222;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.mesa-card h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.mesa-card select {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.mesa-disponible {
+  background: #d4edda;
+}
+
+.mesa-reservada {
+  background: #fff3cd;
+}
+
+.mesa-ocupada {
+  background: #f8d7da;
+}
+.mesa-pendiente-admin {
+  background: #f8d7da;
+}
+.badge-urgente {
+  background: #dc3545;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.badge-normal {
+  background: #6c757d;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.pedido-urgente {
+  box-shadow: inset 4px 0 0 #dc3545;
+}
+
+.mesa-urgente-admin {
+  background: #f8d7da;
+}
