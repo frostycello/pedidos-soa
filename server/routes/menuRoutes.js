@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const Menu = require('../models/Menu');
 const multer = require('multer');
 const path = require('path');
-const Menu = require('../models/menu');
+
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
