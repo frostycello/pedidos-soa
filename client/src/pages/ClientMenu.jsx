@@ -195,7 +195,7 @@ function ClientMenu() {
       <div className="menu">
         <div className="menu-header">
           <div>
-            <h2>Menú del Cliente</h2>
+            <h2>Menú</h2>
             <p className="usuario-logueado">Cliente: {customerName}</p>
 
             {tipoPedidoActivo === 'mesa' && mesaActiva && (
