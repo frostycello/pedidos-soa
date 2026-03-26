@@ -6,6 +6,7 @@ function CheckoutForm({
   total,
   cart,
   mesa,
+  tipoPedido,
   customerEmail,
   customerName,
   API_URL,
@@ -17,7 +18,10 @@ function CheckoutForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      toast.error('Stripe todavía no está listo');
+      return;
+    }
 
     const card = elements.getElement(CardElement);
 
@@ -41,20 +45,23 @@ function CheckoutForm({
       return;
     }
 
-    if (result.paymentIntent.status === 'succeeded') {
+    if (result.paymentIntent?.status === 'succeeded') {
       try {
+        const payload = {
+          customerEmail,
+          customerName,
+          tipoPedido,
+          mesa: tipoPedido === 'mesa' ? Number(mesa) : null,
+          items: cart,
+          total
+        };
+
         const response = await fetch(`${API_URL}/api/orders`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            customerEmail,
-            customerName,
-            mesa: Number(mesa),
-            items: cart,
-            total
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await response.json();

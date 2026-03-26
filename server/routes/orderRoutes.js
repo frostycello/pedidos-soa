@@ -16,15 +16,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Crear un pedido y descontar stock + ocupar mesa
+// Crear un pedido y descontar stock + ocupar mesa si aplica
 router.post('/', async (req, res) => {
   try {
-    const { customerEmail, customerName, mesa, items, total } = req.body;
+    const { customerEmail, customerName, tipoPedido, mesa, items, total } = req.body;
 
     if (
       !customerEmail ||
       !customerName ||
-      !mesa ||
+      !tipoPedido ||
       !items ||
       !Array.isArray(items) ||
       items.length === 0 ||
@@ -33,18 +33,31 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ mensaje: 'Datos incompletos para crear el pedido' });
     }
 
-    // 1) Validar mesa
-    const mesaEncontrada = await Table.findOne({ numero: Number(mesa) });
-
-    if (!mesaEncontrada) {
-      return res.status(404).json({ mensaje: 'La mesa seleccionada no existe' });
+    if (!['mesa', 'llevar'].includes(tipoPedido)) {
+      return res.status(400).json({ mensaje: 'Tipo de pedido no válido' });
     }
 
-    if (mesaEncontrada.estado !== 'disponible') {
-      return res.status(400).json({ mensaje: 'La mesa ya no está disponible' });
+    let mesaEncontrada = null;
+
+    // Validar mesa solo si el pedido es en mesa
+    if (tipoPedido === 'mesa') {
+      if (!mesa) {
+        return res.status(400).json({ mensaje: 'Debes seleccionar una mesa' });
+      }
+
+      mesaEncontrada = await Table.findOne({ numero: Number(mesa) });
+
+      if (!mesaEncontrada) {
+        return res.status(404).json({ mensaje: 'La mesa seleccionada no existe' });
+      }
+
+      // Permitimos ordenar de nuevo sobre una mesa ya ocupada
+      if (!['disponible', 'ocupada'].includes(mesaEncontrada.estado)) {
+        return res.status(400).json({ mensaje: 'La mesa no está disponible para ordenar' });
+      }
     }
 
-    // 2) Validar stock de todos los productos
+    // Validar stock
     for (const item of items) {
       const platillo = await Menu.findById(item._id);
 
@@ -61,22 +74,25 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // 3) Descontar stock
+    // Descontar stock
     for (const item of items) {
       const platillo = await Menu.findById(item._id);
       platillo.stock = platillo.stock - item.qty;
       await platillo.save();
     }
 
-    // 4) Cambiar mesa a ocupada
-    mesaEncontrada.estado = 'ocupada';
-    await mesaEncontrada.save();
+    // Cambiar mesa a ocupada si aplica
+    if (tipoPedido === 'mesa' && mesaEncontrada) {
+      mesaEncontrada.estado = 'ocupada';
+      await mesaEncontrada.save();
+    }
 
-    // 5) Crear pedido
+    // Crear pedido
     const nuevoPedido = new Order({
       customerEmail,
       customerName,
-      mesa: Number(mesa),
+      tipoPedido,
+      mesa: tipoPedido === 'mesa' ? Number(mesa) : null,
       items,
       total,
       estado: 'pendiente',
@@ -124,11 +140,13 @@ router.put('/:id/estado', async (req, res) => {
         pedido.deliveredAt = new Date();
       }
 
-      const mesaEncontrada = await Table.findOne({ numero: pedido.mesa });
+      if (pedido.tipoPedido === 'mesa' && pedido.mesa) {
+        const mesaEncontrada = await Table.findOne({ numero: pedido.mesa });
 
-      if (mesaEncontrada) {
-        mesaEncontrada.estado = 'disponible';
-        await mesaEncontrada.save();
+        if (mesaEncontrada) {
+          mesaEncontrada.estado = 'disponible';
+          await mesaEncontrada.save();
+        }
       }
     } else {
       pedido.deliveredAt = null;

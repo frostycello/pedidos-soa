@@ -123,6 +123,11 @@ function WaiterOrders() {
     return '';
   };
 
+  const textoTipoPedido = (pedido) => {
+    if (pedido.tipoPedido === 'llevar') return 'Para llevar';
+    return `Mesa ${pedido.mesa}`;
+  };
+
   return (
     <div className="users-container">
       <div className="users-card">
@@ -165,7 +170,7 @@ function WaiterOrders() {
           <table>
             <thead>
               <tr>
-                <th>Mesa</th>
+                <th>Tipo</th>
                 <th>Cliente</th>
                 <th>Productos</th>
                 <th>Hora</th>
@@ -186,7 +191,7 @@ function WaiterOrders() {
                     key={pedido._id}
                     className={`${`estado-${pedido.estado}`} ${esPedidoUrgente(pedido) ? 'pedido-urgente' : ''}`}
                   >
-                    <td>{pedido.mesa}</td>
+                    <td>{textoTipoPedido(pedido)}</td>
 
                     <td>
                       {pedido.customerName || pedido.clienteNombre}
@@ -205,6 +210,7 @@ function WaiterOrders() {
                     </td>
 
                     <td>{formatearHora(pedido.createdAt)}</td>
+
                     <td>
                       {tiempoTranscurrido(
                         pedido.createdAt,
@@ -212,6 +218,7 @@ function WaiterOrders() {
                         pedido.estado
                       )}
                     </td>
+
                     <td>${pedido.total}</td>
 
                     <td>

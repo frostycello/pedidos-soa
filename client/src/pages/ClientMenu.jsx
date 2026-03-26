@@ -13,7 +13,17 @@ function ClientMenu() {
   const [menu, setMenu] = useState([]);
   const [mesas, setMesas] = useState([]);
   const [cart, setCart] = useState([]);
+
+  const [tipoPedido, setTipoPedido] = useState('mesa');
   const [mesa, setMesa] = useState('');
+
+  const [mesaActiva, setMesaActiva] = useState(
+    localStorage.getItem('mesaActiva') || ''
+  );
+  const [tipoPedidoActivo, setTipoPedidoActivo] = useState(
+    localStorage.getItem('tipoPedidoActivo') || ''
+  );
+
   const [clientSecret, setClientSecret] = useState('');
   const [mostrarPago, setMostrarPago] = useState(false);
   const [cargandoPago, setCargandoPago] = useState(false);
@@ -22,6 +32,7 @@ function ClientMenu() {
   const customerName = localStorage.getItem('userName') || 'Cliente';
 
   const stripePromise = useMemo(() => loadStripe(STRIPE_PUBLIC_KEY), []);
+  const mesaParaEnviar = mesaActiva || mesa;
 
   useEffect(() => {
     obtenerMenu();
@@ -32,7 +43,7 @@ function ClientMenu() {
     try {
       const res = await axios.get(`${API_URL}/api/menu`);
       setMenu(res.data);
-    } catch (error) {
+    } catch {
       toast.error('Error al cargar el menú');
     }
   };
@@ -44,7 +55,7 @@ function ClientMenu() {
         (mesaItem) => mesaItem.estado === 'disponible'
       );
       setMesas(mesasDisponibles);
-    } catch (error) {
+    } catch {
       toast.error('Error al cargar las mesas');
     }
   };
@@ -63,10 +74,11 @@ function ClientMenu() {
         return;
       }
 
-      const nuevoCarrito = cart.map((p) =>
-        p._id === item._id ? { ...p, qty: p.qty + 1 } : p
+      setCart(
+        cart.map((p) =>
+          p._id === item._id ? { ...p, qty: p.qty + 1 } : p
+        )
       );
-      setCart(nuevoCarrito);
     } else {
       setCart([
         ...cart,
@@ -84,24 +96,23 @@ function ClientMenu() {
 
   const quitarDelCarrito = (_id) => {
     const producto = cart.find((p) => p._id === _id);
-
     if (!producto) return;
 
     if (producto.qty > 1) {
-      const nuevoCarrito = cart.map((p) =>
-        p._id === _id ? { ...p, qty: p.qty - 1 } : p
+      setCart(
+        cart.map((p) =>
+          p._id === _id ? { ...p, qty: p.qty - 1 } : p
+        )
       );
-      setCart(nuevoCarrito);
     } else {
-      const nuevoCarrito = cart.filter((p) => p._id !== _id);
-      setCart(nuevoCarrito);
+      setCart(cart.filter((p) => p._id !== _id));
     }
   };
 
   const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
   const iniciarPago = async () => {
-    if (!mesa) {
+    if ((tipoPedidoActivo || tipoPedido) === 'mesa' && !mesaParaEnviar) {
       toast.warning('Debes seleccionar una mesa');
       return;
     }
@@ -126,8 +137,7 @@ function ClientMenu() {
       setClientSecret(res.data.clientSecret);
       setMostrarPago(true);
     } catch (error) {
-      const mensaje =
-        error.response?.data?.mensaje || 'Error al iniciar el pago';
+      const mensaje = error.response?.data?.mensaje || 'Error al iniciar el pago';
       toast.error(mensaje);
     } finally {
       setCargandoPago(false);
@@ -140,6 +150,23 @@ function ClientMenu() {
   };
 
   const handlePagoExitoso = () => {
+    const tipoFinal = tipoPedidoActivo || tipoPedido;
+    const mesaFinal = mesaActiva || mesa;
+
+    if (tipoFinal === 'mesa' && !mesaActiva && mesaFinal) {
+      setMesaActiva(mesaFinal);
+      setTipoPedidoActivo('mesa');
+      localStorage.setItem('mesaActiva', String(mesaFinal));
+      localStorage.setItem('tipoPedidoActivo', 'mesa');
+    }
+
+    if (tipoFinal === 'llevar') {
+      setTipoPedidoActivo('llevar');
+      localStorage.setItem('tipoPedidoActivo', 'llevar');
+      localStorage.removeItem('mesaActiva');
+      setMesaActiva('');
+    }
+
     setCart([]);
     setMesa('');
     setClientSecret('');
@@ -148,6 +175,21 @@ function ClientMenu() {
     obtenerMesas();
   };
 
+  const nuevaOrden = () => {
+    setCart([]);
+    setMesa('');
+    setClientSecret('');
+    setMostrarPago(false);
+    setMesaActiva('');
+    setTipoPedidoActivo('');
+    setTipoPedido('mesa');
+    localStorage.removeItem('mesaActiva');
+    localStorage.removeItem('tipoPedidoActivo');
+    toast.info('Puedes iniciar una nueva orden');
+  };
+
+  const tipoMostrado = tipoPedidoActivo || tipoPedido;
+
   return (
     <div className="menu-container">
       <div className="menu">
@@ -155,29 +197,59 @@ function ClientMenu() {
           <div>
             <h2>Menú del Cliente</h2>
             <p className="usuario-logueado">Cliente: {customerName}</p>
+
+            {tipoPedidoActivo === 'mesa' && mesaActiva && (
+              <p className="usuario-logueado">Mesa activa: {mesaActiva}</p>
+            )}
+
+            {tipoPedidoActivo === 'llevar' && (
+              <p className="usuario-logueado">Modo actual: Para llevar</p>
+            )}
           </div>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <select
-            value={mesa}
-            onChange={(e) => setMesa(e.target.value)}
-            style={{
-              padding: '12px',
-              borderRadius: '10px',
-              border: '1px solid #ccc',
-              width: '240px',
-              fontSize: '16px'
-            }}
-          >
-            <option value="">Selecciona una mesa</option>
-            {mesas.map((mesaItem) => (
-              <option key={mesaItem._id} value={mesaItem.numero}>
-                Mesa {mesaItem.numero}
-              </option>
-            ))}
-          </select>
-        </div>
+        {!tipoPedidoActivo && (
+          <div style={{ marginBottom: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              className="btn-agregar"
+              onClick={() => setTipoPedido('mesa')}
+              style={{ opacity: tipoPedido === 'mesa' ? 1 : 0.8 }}
+            >
+              En mesa
+            </button>
+
+            <button
+              className="btn-cerrar"
+              onClick={() => setTipoPedido('llevar')}
+              style={{ opacity: tipoPedido === 'llevar' ? 1 : 0.8 }}
+            >
+              Para llevar
+            </button>
+          </div>
+        )}
+
+        {!tipoPedidoActivo && tipoPedido === 'mesa' && (
+          <div style={{ marginBottom: '20px' }}>
+            <select
+              value={mesa}
+              onChange={(e) => setMesa(e.target.value)}
+              style={{
+                padding: '12px',
+                borderRadius: '10px',
+                border: '1px solid #ccc',
+                width: '240px',
+                fontSize: '16px'
+              }}
+            >
+              <option value="">Selecciona una mesa</option>
+              {mesas.map((mesaItem) => (
+                <option key={mesaItem._id} value={mesaItem.numero}>
+                  Mesa {mesaItem.numero}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {menu.length === 0 ? (
           <p className="sin-platillos">No hay platillos registrados.</p>
@@ -280,7 +352,8 @@ function ClientMenu() {
                         clientSecret={clientSecret}
                         total={total}
                         cart={cart}
-                        mesa={mesa}
+                        mesa={mesaParaEnviar}
+                        tipoPedido={tipoMostrado}
                         customerEmail={customerEmail}
                         customerName={customerName}
                         API_URL={API_URL}
@@ -301,6 +374,14 @@ function ClientMenu() {
             </>
           )}
         </div>
+
+        {tipoPedidoActivo && (
+          <div style={{ marginTop: '20px' }}>
+            <button className="btn-cerrar" onClick={nuevaOrden}>
+              Nueva orden
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

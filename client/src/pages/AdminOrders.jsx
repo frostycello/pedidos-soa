@@ -74,11 +74,18 @@ function AdminOrders() {
     return minutos >= 15;
   };
 
+  const textoTipoPedido = (pedido) => {
+    if (pedido.tipoPedido === 'llevar') return 'Para llevar';
+    return `Mesa ${pedido.mesa}`;
+  };
+
   const totalPedidos = pedidos.length;
   const pendientes = pedidos.filter((p) => p.estado === 'pendiente').length;
   const enPreparacion = pedidos.filter((p) => p.estado === 'en preparacion').length;
   const entregados = pedidos.filter((p) => p.estado === 'entregado').length;
   const urgentes = pedidos.filter((p) => esPedidoUrgente(p)).length;
+  const paraLlevar = pedidos.filter((p) => p.tipoPedido === 'llevar').length;
+  const enMesa = pedidos.filter((p) => p.tipoPedido === 'mesa').length;
 
   return (
     <div className="users-container">
@@ -113,13 +120,23 @@ function AdminOrders() {
             <h4>Urgentes</h4>
             <p>{urgentes}</p>
           </div>
+
+          <div className="mesa-card mesa-libre">
+            <h4>En mesa</h4>
+            <p>{enMesa}</p>
+          </div>
+
+          <div className="mesa-card mesa-reservada">
+            <h4>Para llevar</h4>
+            <p>{paraLlevar}</p>
+          </div>
         </div>
 
         <div className="tabla-usuarios">
           <table>
             <thead>
               <tr>
-                <th>Mesa</th>
+                <th>Tipo</th>
                 <th>Cliente</th>
                 <th>Productos</th>
                 <th>Hora</th>
@@ -140,7 +157,7 @@ function AdminOrders() {
                     key={pedido._id}
                     className={`${`estado-${pedido.estado}`} ${esPedidoUrgente(pedido) ? 'pedido-urgente' : ''}`}
                   >
-                    <td>{pedido.mesa}</td>
+                    <td>{textoTipoPedido(pedido)}</td>
 
                     <td>
                       {pedido.customerName || pedido.clienteNombre}
@@ -159,6 +176,7 @@ function AdminOrders() {
                     </td>
 
                     <td>{formatearHora(pedido.createdAt)}</td>
+
                     <td>
                       {tiempoTranscurrido(
                         pedido.createdAt,
@@ -166,6 +184,7 @@ function AdminOrders() {
                         pedido.estado
                       )}
                     </td>
+
                     <td>${pedido.total}</td>
 
                     <td>

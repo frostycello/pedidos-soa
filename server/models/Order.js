@@ -13,9 +13,15 @@ const orderSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    tipoPedido: {
+      type: String,
+      enum: ['mesa', 'llevar'],
+      default: 'mesa',
+      required: true
+    },
     mesa: {
       type: Number,
-      required: true
+      default: null
     },
     items: [
       {
